@@ -66,45 +66,6 @@ namespace apc
             using type = tuple<>;
         };
 
-        // template< typename... Ts >
-        // auto no_nils(tuple<res::NilOk, Ts...> t)
-        // {
-        //     return no_nils(apply([](auto head, auto... tail)
-        //                          {
-        //                              return make_tuple(move(tail)...);
-        //                          }, t));
-        // }
-
-        // template< typename T, typename... Ts >
-        // auto no_nils(tuple<T, Ts...> t)
-        // {
-        //     if constexpr (sizeof...(Ts) != 1)
-        //     {
-        //         return tuple_cat(make_tuple(get<0>(t)),
-        //                         apply([](auto head, auto... tail)
-        //                             {
-        //                                 return no_nils(make_tuple(tail...));
-        //                             }, t)
-        //             );
-        //     }
-        //     else
-        //     {
-        //         return make_tuple(get<0>(t));
-        //     }
-        // }
-
-        // template<>
-        // auto no_nils(tuple<res::NilOk> t)
-        // {
-        //     return tuple<>();
-        // }
-
-
-        // template<typename T>
-        // tuple<> no_nils(tuple<T> t)
-        // {
-        //     return t;
-        // }
 
         template< typename T, typename... Ts >
         constexpr typename NoNils<T, Ts...>::type no_nils(tuple<T, Ts...> t)
