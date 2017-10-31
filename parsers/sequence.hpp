@@ -28,7 +28,7 @@ namespace apc
                     , n(n)
                     , inner_offset(self_offset) {}
 
-                virtual string description(size_t offset = 0) override
+                string description(size_t offset = 0) override
                 {
                     std::stringstream sstream;
                     sstream << "Sequence error at " << offset
@@ -39,7 +39,7 @@ namespace apc
                     return sstream.str() ;
                 }
 
-                virtual Error& previous() override
+                Error& previous() override
                 {
                     return *prev;
                 }
@@ -109,7 +109,7 @@ namespace apc
 
                     head_eoi.trace.push_back("Sequence position "s + std::to_string(n));
 
-                    return move(head_eoi);
+                    return head_eoi;
                 }
             }
 

@@ -15,6 +15,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 * unit(T): returns T if the first element of input is equal to T. Otherwise returns error
 * sequence(Ps...): accepts one or more parsers and executes them in sequence. Returns tuple of their results without `NilOk`s if they all succeed or error if at least one fails
 * hide(P): accepts one parser and executes it but replaces its return type with `NilOk`
+* many(P): accepts one parser and executes it until it fails. Returns vector of values.
 
 ### error handling
 
@@ -40,6 +41,7 @@ Get the contents:
 * unwrap_ok(res)
 * unwrap_err(res)
 * unwrap_eoi(res)
+* match(res, fn\_ok, fn\_err, fn\_eoi)
 
 Construct ok/err:
 * ok(T, I)

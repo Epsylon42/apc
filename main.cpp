@@ -16,6 +16,15 @@ void print(const T& t)
     cout << t << ' ';
 }
 
+template< typename T >
+void print(const vector<T>& t)
+{
+    for (const auto& e : t)
+    {
+        cout << e << ' ';
+    }
+}
+
 template< typename T, typename... Ts >
 void print(const tuple<T, Ts...>& t)
 {
@@ -30,36 +39,40 @@ void print(const tuple<T, Ts...>& t)
     }
 }
 
+
 int main()
 {
     using namespace apc::res;
     using namespace apc::parsers;
 
-    auto parser
-        = sequence(
-            unit('a'),
-            hide(unit('b')),
-            unit('c')
-            );
+    for (string_view in : { "aaaa", "aab", "abc", "a" }) {
+        auto parser =
+            sequence(
+                many(
+                    unit('a')
+                    )
+                .at_least(2)
+                .at_most(4),
 
-    for (string_view s : { "abc", "aec", "ab" })
-    {
-        auto res = parser.parse(s.begin(), s.end());
+                unit('b')
+                );
 
-        if (is_ok(res))
-        {
-            print(unwrap_ok(move(res)).res);
-            cout << endl;
-        }
-        else if (is_err(res))
-        {
-            unwrap_err(move(res)).err.print_trace();
-        }
-        else
-        {
-            unwrap_eoi(move(res)).print_trace();
-        }
 
-        cout << endl << endl;
+        match(parser.parse(in.begin(), in.end()),
+              [](auto res_ok)
+              {
+                  print(res_ok.res);
+                  cout << endl << endl;
+              },
+              [](auto res_err)
+              {
+                  res_err.err.print_trace();
+                  cout << endl;
+              },
+              [](auto res_eoi)
+              {
+                  res_eoi.print_trace();
+                  cout << endl;
+              });
     }
 }

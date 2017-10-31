@@ -15,7 +15,7 @@ namespace apc
             using namespace res;
 
             template< typename T >
-                struct UnitErr : Error
+            struct UnitErr : Error
             {
                 NilErr prev;
 
@@ -27,7 +27,7 @@ namespace apc
                     , expected(expected)
                     , got(got) {}
 
-                virtual string description(size_t offset = 0) override
+                string description(size_t offset = 0) override
                 {
                     if constexpr (misc::is_printable<T>())
                                  {
@@ -44,14 +44,14 @@ namespace apc
                     }
                 }
 
-                virtual Error& previous() override
+                Error& previous() override
                 {
                     return prev;
                 }
             };
 
             template< typename T >
-                struct Unit
+            struct Unit
             {
                 T unit;
 
