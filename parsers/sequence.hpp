@@ -118,7 +118,7 @@ namespace apc
             {
                 tuple<Ts...> parsers;
 
-                using Ok = misc::no_nils_t<typename Ts::Ok...>;
+                using Ok = misc::remove_nils_t<typename Ts::Ok...>;
                 using Err = SequenceErr;
 
                 Sequence(Ts... parsers) : parsers(move(parsers)...) {}
@@ -137,7 +137,7 @@ namespace apc
 
                         I res_end = res_ok.pos;
 
-                        return ok(move(misc::no_nils(move(res_ok.res))), res_end);
+                        return ok(move(misc::remove_nils(move(res_ok.res))), res_end);
                     }
                     else if (is_err(res))
                     {

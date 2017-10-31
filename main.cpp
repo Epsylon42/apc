@@ -54,7 +54,7 @@ int main()
                 .at_least(2)
                 .at_most(4),
 
-                unit('b')
+                hide(unit('b'))
                 );
 
 

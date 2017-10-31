@@ -46,32 +46,32 @@ namespace apc
 
 
         template< typename... Ts >
-        struct NoNils;
+        struct RemoveNils;
 
         template< typename T, typename... Ts >
-        struct NoNils<T, Ts...>
+        struct RemoveNils<T, Ts...>
         {
-            using type = typename AppendTuple<T, typename NoNils<Ts...>::type>::type;
+            using type = typename AppendTuple<T, typename RemoveNils<Ts...>::type>::type;
         };
 
         template< typename... Ts >
-        struct NoNils<res::NilOk, Ts...>
+        struct RemoveNils<res::NilOk, Ts...>
         {
-            using type = typename NoNils<Ts...>::type;
+            using type = typename RemoveNils<Ts...>::type;
         };
 
         template<>
-        struct NoNils<>
+        struct RemoveNils<>
         {
             using type = tuple<>;
         };
 
         template< typename... Ts >
-        using no_nils_t = typename NoNils<Ts...>::type;
+        using remove_nils_t = typename RemoveNils<Ts...>::type;
 
 
         template< typename T, typename... Ts >
-        constexpr no_nils_t<T, Ts...> no_nils(tuple<T, Ts...> t)
+        constexpr remove_nils_t<T, Ts...> remove_nils(tuple<T, Ts...> t)
         {
             if constexpr (is_same_v<T, res::NilOk>)
             {
@@ -79,7 +79,7 @@ namespace apc
                 {
                     return apply([](auto head, auto... tail)
                                  {
-                                     return no_nils(make_tuple(tail...));
+                                     return remove_nils(make_tuple(tail...));
                                  }, t);
                 }
                 else
@@ -96,7 +96,7 @@ namespace apc
                                      return tuple_cat
                                          (
                                              make_tuple(head),
-                                             no_nils(make_tuple(tail...))
+                                             remove_nils(make_tuple(tail...))
                                              );
                                  }, t);
                 }
