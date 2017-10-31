@@ -13,7 +13,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 ###### currently implemented parsers
 
 * unit(T): returns T if the first element of input is equal to T. Otherwise returns error
-* sequence(P...): accepts one or more parsers and executes them in sequence returns tuple of their results without `NilOk`s if they all succeed or error if at least one fails
+* sequence(Ps...): accepts one or more parsers and executes them in sequence returns tuple of their results without `NilOk`s if they all succeed or error if at least one fails
 * hide(P): accepts one parser and executes it but replaces its return type with `NilOk`
 
 ### error handling
