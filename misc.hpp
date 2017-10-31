@@ -66,9 +66,12 @@ namespace apc
             using type = tuple<>;
         };
 
+        template< typename... Ts >
+        using no_nils_t = typename NoNils<Ts...>::type;
+
 
         template< typename T, typename... Ts >
-        constexpr typename NoNils<T, Ts...>::type no_nils(tuple<T, Ts...> t)
+        constexpr no_nils_t<T, Ts...> no_nils(tuple<T, Ts...> t)
         {
             if constexpr (is_same_v<T, res::NilOk>)
             {
