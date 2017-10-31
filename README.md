@@ -45,6 +45,6 @@ Get the contents:
 
 Construct ok/err:
 * ok(T, I)
-* err(T, I)
+* err(E, I)
 
 ## I'm tired and this readme is complex enough. I'll finish it when the library is actually ready
