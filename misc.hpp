@@ -17,21 +17,30 @@ namespace apc
         using print_t = decltype(declval<ostream&>() << declval<T&>());
 
         template< typename T >
-        constexpr bool is_printable(T& t)
-        {
-            return is_detected_v<print_t, T>;
-        }
+        constexpr bool is_printable_v = is_detected_v<print_t, T>;
+
+        template< typename T, typename... Ts >
+        constexpr bool are_printable_v = (!is_printable_v<T> ? false : are_printable_v<Ts...>);
 
         template< typename T >
-        constexpr bool is_printable(const T& t)
+        constexpr bool are_printable_v<T> = is_printable_v<T>;
+
+        template< typename... Ts >
+        tuple<Ts&...> ref_tuple(tuple<Ts...>& t)
         {
-            return is_detected_v<print_t, T>;
+            return apply([](auto&... elems)
+                         {
+                             return tie(elems...);
+                         }, t);
         }
 
-        template< typename T >
-        constexpr bool is_printable()
+        template< typename... Ts >
+        tuple<Ts...> move_ref_tuple(tuple<Ts&...> t)
         {
-            return is_detected_v<print_t, T>;
+            return apply([](auto&... elems)
+                         {
+                             return make_tuple(move(elems)...);
+                         }, t);
         }
 
 
@@ -46,63 +55,69 @@ namespace apc
 
 
         template< typename... Ts >
-        struct RemoveNils;
+        struct WithoutNils;
 
         template< typename T, typename... Ts >
-        struct RemoveNils<T, Ts...>
+        struct WithoutNils<T, Ts...>
         {
-            using type = typename AppendTuple<T, typename RemoveNils<Ts...>::type>::type;
+            using type = typename AppendTuple<T, typename WithoutNils<Ts...>::type>::type;
         };
 
         template< typename... Ts >
-        struct RemoveNils<res::NilOk, Ts...>
+        struct WithoutNils<res::NilOk, Ts...>
         {
-            using type = typename RemoveNils<Ts...>::type;
+            using type = typename WithoutNils<Ts...>::type;
+        };
+
+        template< typename... Ts >
+        struct WithoutNils<res::NilOk&, Ts...>
+        {
+            using type = typename WithoutNils<Ts...>::type;
         };
 
         template<>
-        struct RemoveNils<>
+        struct WithoutNils<>
         {
             using type = tuple<>;
         };
 
         template< typename... Ts >
-        using remove_nils_t = typename RemoveNils<Ts...>::type;
+        using without_nils_t = typename WithoutNils<Ts...>::type;
 
 
         template< typename T, typename... Ts >
-        constexpr remove_nils_t<T, Ts...> remove_nils(tuple<T, Ts...> t)
+        constexpr without_nils_t<T&, Ts&...> without_nils(tuple<T&, Ts&...> t)
         {
             if constexpr (is_same_v<T, res::NilOk>)
             {
                 if constexpr (sizeof...(Ts) != 0)
                 {
-                    return apply([](auto head, auto... tail)
+                    return apply([](auto& head, auto&... tail)
                                  {
-                                     return remove_nils(make_tuple(tail...));
+                                     return without_nils(tie(tail...));
                                  }, t);
                 }
                 else
                 {
-                    return make_tuple();
+                    return tie();
                 }
             }
             else
             {
                 if constexpr (sizeof...(Ts) != 0)
                 {
-                    return apply([](auto head, auto... tail)
+                    return apply([](auto& head, auto&... tail)
                                  {
                                      return tuple_cat
                                          (
-                                             make_tuple(head),
-                                             remove_nils(make_tuple(tail...))
+                                             tie(head),
+                                             without_nils(tie(tail...))
                                              );
                                  }, t);
                 }
                 else
                 {
-                    return make_tuple(get<0>(t));
+                    return tie(get<0>(t));
                 }
             }
         }

@@ -29,7 +29,7 @@ namespace apc
 
                 string description(size_t offset = 0) override
                 {
-                    if constexpr (misc::is_printable<T>())
+                    if constexpr (misc::is_printable_v<T>)
                                  {
                                      stringstream sstream;
                                      sstream << "Unit error at " << offset
@@ -65,7 +65,7 @@ namespace apc
                 {
                     if (b >= e)
                     {
-                        if constexpr (misc::is_printable<T>())
+                        if constexpr (misc::is_printable_v<T>)
                                      {
                                          stringstream sstream;
                                          sstream << "Unit expecting "

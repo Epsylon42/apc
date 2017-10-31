@@ -14,23 +14,24 @@ namespace apc
         namespace sequence_ns
         {
             using namespace res;
+            using namespace misc;
 
             struct SequenceErr : Error
             {
-                std::unique_ptr<Error> prev;
+                unique_ptr<Error> prev;
 
                 size_t n;
 
                 size_t inner_offset;
 
-                SequenceErr(size_t self_offset, std::unique_ptr<Error> prev, size_t n)
-                    : prev(std::move(prev))
+                SequenceErr(size_t self_offset, unique_ptr<Error> prev, size_t n)
+                    : prev(move(prev))
                     , n(n)
                     , inner_offset(self_offset) {}
 
                 string description(size_t offset = 0) override
                 {
-                    std::stringstream sstream;
+                    stringstream sstream;
                     sstream << "Sequence error at " << offset
                             << " because parser number " << n << " failed:" << endl
                             << prev->description(offset + inner_offset);
@@ -118,7 +119,7 @@ namespace apc
             {
                 tuple<Ts...> parsers;
 
-                using Ok = misc::remove_nils_t<typename Ts::Ok...>;
+                using Ok = without_nils_t<typename Ts::Ok...>;
                 using Err = SequenceErr;
 
                 Sequence(Ts... parsers) : parsers(move(parsers)...) {}
@@ -137,7 +138,7 @@ namespace apc
 
                         I res_end = res_ok.pos;
 
-                        return ok(move(misc::remove_nils(move(res_ok.res))), res_end);
+                        return ok(move_ref_tuple(without_nils(ref_tuple(res_ok.res))), res_end);
                     }
                     else if (is_err(res))
                     {
