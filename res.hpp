@@ -42,9 +42,7 @@ namespace apc
 
             virtual Error& previous() override
             {
-                static NilErr global;
-
-                return global;
+                return *this;
             }
 
             virtual bool is_nil() override
