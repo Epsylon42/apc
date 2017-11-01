@@ -60,6 +60,7 @@ namespace apc
             }
         }
 
+
         struct EOI
         {
             vector<string> trace;
@@ -68,16 +69,17 @@ namespace apc
             EOI(string&& s) : trace{s} {}
             EOI(string& s) : trace{s} {}
 
-            void print_trace(ostream& out = cerr) const
-            {
-                out << "End of input" << endl;
-
-                for (auto iter = trace.crbegin(); iter != trace.crend(); iter++)
-                {
-                    out << "\tIn " << *iter << endl;
-                }
-            }
         };
+
+        void print_trace(EOI& eoi, ostream& out = cerr)
+        {
+            out << "End of input" << endl;
+
+            for (auto iter = eoi.trace.crbegin(); iter != eoi.trace.crend(); iter++)
+            {
+                out << "\tIn " << *iter << endl;
+            }
+        }
 
         template< typename T, typename I >
         struct Ok

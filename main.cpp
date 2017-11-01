@@ -71,7 +71,7 @@ int main()
               },
               [](auto res_eoi)
               {
-                  res_eoi.print_trace();
+                  print_trace(res_eoi);
                   cout << endl;
               });
     }
