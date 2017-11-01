@@ -3,5 +3,6 @@
 #include <string>
 #include <iostream>
 
+#include "misc.hpp"
 #include "res.hpp"
 #include "parsers.hpp"

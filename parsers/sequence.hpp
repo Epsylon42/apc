@@ -16,51 +16,47 @@ namespace apc
             using namespace res;
             using namespace misc;
 
-            struct SequenceErr : Error
+
+            template< typename T >
+            struct SequenceErr;
+
+            template< typename... Es >
+            struct SequenceErr<tuple<Es...>>
             {
-                unique_ptr<Error> prev;
+                variant<Es...> prev;
 
                 size_t n;
-
                 size_t inner_offset;
 
-                SequenceErr(size_t self_offset, unique_ptr<Error> prev, size_t n)
+                SequenceErr(size_t inner_offset, variant<Es...> prev, size_t n)
                     : prev(move(prev))
                     , n(n)
-                    , inner_offset(self_offset) {}
+                    , inner_offset(inner_offset) {}
 
-                string description(size_t offset = 0) override
+                tuple<string, size_t> description()
                 {
                     stringstream sstream;
-                    sstream << "Sequence error at " << offset
-                            << " because parser number " << n << " failed:" << endl
-                            << prev->description(offset + inner_offset);
+                    sstream << "Sequence error because parser number " << n << " failed";
 
-
-                    return sstream.str() ;
-                }
-
-                Error& previous() override
-                {
-                    return *prev;
+                    return { sstream.str(), inner_offset } ;
                 }
             };
 
-            template< typename I, typename T, typename... Ts >
-                auto sequence_impl(size_t n, I b, I e, T& head, Ts&... tail) -> Result<tuple<typename T::Ok, typename Ts::Ok...>, SequenceErr, I>
+            template< typename I, typename E, typename P, typename... Ps >
+                auto sequence_impl(size_t n, I b, I e, P& head, Ps&... tail) -> Result<tuple<typename P::Ok, typename Ps::Ok...>, E, I>
             {
                 auto head_res = head.parse(b, e);
                 if (is_ok(head_res))
                 {
                     auto head_ok = unwrap_ok(move(head_res));
 
-                    if constexpr (sizeof...(Ts) == 0)
+                    if constexpr (sizeof...(Ps) == 0)
                                  {
                                      return ok(make_tuple(move(head_ok.res)), head_ok.pos);
                                  }
                     else
                     {
-                        auto tail_res = sequence_impl(n+1, head_ok.pos, e, tail...);
+                        auto tail_res = sequence_impl<I, E>(n+1, head_ok.pos, e, tail...);
                         if (is_ok(tail_res))
                         {
                             auto tail_ok = unwrap_ok(move(tail_res));
@@ -96,9 +92,9 @@ namespace apc
 
                     I err_pos = head_err.pos;
 
-                    return err(SequenceErr(
+                    return err(E(
                                    distance(b, err_pos),
-                                   unique_ptr<Error>(new remove_reference_t<decltype(head_err.err)> (move(head_err.err))),
+                                   move(head_err.err),
                                    n
                                    ),
                                err_pos
@@ -114,22 +110,23 @@ namespace apc
                 }
             }
 
-            template< typename... Ts >
+            template< typename... Ps >
                 struct Sequence
             {
-                tuple<Ts...> parsers;
+                tuple<Ps...> parsers;
 
-                using Ok = without_nils_t<typename Ts::Ok...>;
-                using Err = SequenceErr;
+                using Ok = without_t_t<NilOk, typename Ps::Ok...>;
 
-                Sequence(Ts... parsers) : parsers(move(parsers)...) {}
+                using Err = SequenceErr<typename RemoveDuplicates<typename Ps::Err...>::type>;
+
+                Sequence(Ps... parsers) : parsers(move(parsers)...) {}
 
                 template< typename I >
                 Result<Ok, Err, I> parse(I b, I e)
                 {
                     auto res = apply([&b, &e](auto head, auto... tail)
                                      {
-                                         return sequence_impl(0, b, e, head, tail...);
+                                         return sequence_impl<I, Err>(0, b, e, head, tail...);
                                      }, parsers);
 
                     if (is_ok(res))
@@ -138,7 +135,7 @@ namespace apc
 
                         I res_end = res_ok.pos;
 
-                        return ok(move_ref_tuple(without_nils(ref_tuple(res_ok.res))), res_end);
+                        return ok(move_ref_tuple(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
                     }
                     else if (is_err(res))
                     {
@@ -154,10 +151,10 @@ namespace apc
             };
         }
 
-        template< typename... Ts >
-        auto sequence(Ts... parsers)
+        template< typename... Ps >
+        auto sequence(Ps... parsers)
         {
-            return sequence_ns::Sequence<Ts...>(move(parsers)...);
+            return sequence_ns::Sequence<Ps...>(move(parsers)...);
         }
     }
 }

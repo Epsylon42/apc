@@ -66,7 +66,7 @@ int main()
               },
               [](auto res_err)
               {
-                  res_err.err.print_trace();
+                  print_trace(res_err.err);
                   cout << endl;
               },
               [](auto res_eoi)

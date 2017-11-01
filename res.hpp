@@ -9,6 +9,7 @@
 #include <vector>
 #include <ostream>
 #include <iostream>
+#include <type_traits>
 
 namespace apc
 {
@@ -18,38 +19,40 @@ namespace apc
     {
         struct NilOk {};
 
-        struct Error
+        struct NilErr {};
+
+        template< typename E >
+        void print_trace(E& err, ostream& out = cerr, size_t offset = 0, bool first = true)
         {
-            virtual std::string description(size_t offset) = 0;
-            virtual Error& previous() = 0;
-            virtual bool is_nil()
+            if constexpr (is_same_v<E, NilErr>)
             {
-                return false;
+                return;
             }
 
-            void print_trace(std::ostream& out = std::cerr)
-            {
-                out << description(0) << std::endl;
-            }
-        };
+            auto [ desc, e_offset ] = err.description();
 
-        struct NilErr : Error
-        {
-            virtual string description(size_t offset = 0) override
+            if (first)
             {
-                return "NilErr";
+                out << "Error trace" << endl;
             }
 
-            virtual Error& previous() override
-            {
-                return *this;
-            }
+            out << "\t" << "At " << offset << ' ' << desc << endl;
 
-            virtual bool is_nil() override
+            if constexpr (misc::is_optional(err.prev))
             {
-                return true;
+                if (err.prev.has_value())
+                {
+                    print_trace(*err.prev, out, offset + e_offset, false);
+                }
             }
-        };
+            else if constexpr (misc::is_variant(err.prev))
+            {
+                visit([&out, offset, e_offset](auto& e)
+                      {
+                          print_trace(e, out, offset + e_offset, false);
+                      }, err.prev);
+            }
+        }
 
         struct EOI
         {

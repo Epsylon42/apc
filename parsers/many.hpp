@@ -21,7 +21,7 @@ namespace apc
             };
 
             template< typename E >
-            struct ManyErr : Error
+            struct ManyErr
             {
                 optional<E> prev;
 
@@ -39,51 +39,28 @@ namespace apc
                     , cause(cause)
                     , inner_offset(offset) {}
 
-                string description(size_t offset = 0) override
+                tuple<string, size_t> description()
                 {
                     stringstream sstream;
-                    sstream << "Many error at " << offset
-                            << " because ";
+                    sstream << "Many error because ";
 
                     switch (cause)
                     {
                     case ManyErrCause::ParserFailed:
                         sstream << "parser number " << step
                                 << " failed. Expected at least " << expected_at_least
-                                << ' ' << (expected_at_least == 1 ? "value" : "values")
-                                << ". Cause:" << endl;
-
-                            if (prev.has_value())
-                            {
-                                sstream << prev->description(offset + inner_offset);
-                            }
+                                << ' ' << (expected_at_least == 1 ? "value" : "values");
                         break;
 
                     case ManyErrCause::ConditionFailed:
                         sstream << "return value of parser number " << step
                                 << " did not satisfy the condition. Expected at least"
                                 << expected_at_least << ' '
-                                << (expected_at_least == 1 ? "value" : "values")
-                                << endl;
+                                << (expected_at_least == 1 ? "value" : "values");
                         break;
                     }
 
-                    return sstream.str();
-                }
-
-                Error& previous() override
-                {
-                    if (prev.has_value())
-                    {
-                        return *prev;
-                    }
-                    else
-                    {
-                        //FIXME: find a way not to create a static variable
-                        static NilErr nil;
-
-                        return nil;
-                    }
+                    return { sstream.str(), inner_offset };
                 }
             };
 

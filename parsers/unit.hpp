@@ -15,7 +15,7 @@ namespace apc
             using namespace res;
 
             template< typename T >
-            struct UnitErr : Error
+            struct UnitErr
             {
                 NilErr prev;
 
@@ -27,26 +27,20 @@ namespace apc
                     , expected(expected)
                     , got(got) {}
 
-                string description(size_t offset = 0) override
+                tuple<string, size_t> description()
                 {
                     if constexpr (misc::is_printable_v<T>)
                                  {
                                      stringstream sstream;
-                                     sstream << "Unit error at " << offset
-                                             << " because expected " << '"' << expected << '"'
+                                     sstream << "Unit error because expected " << '"' << expected << '"'
                                              << " but got " << '"' << got << '"';
 
-                                     return sstream.str();
+                                     return { sstream.str(), 0 };
                                  }
                     else
                     {
-                        return "Unit error at " + std::to_string(offset);
+                        return { "Unit error", 0 };
                     }
-                }
-
-                Error& previous() override
-                {
-                    return prev;
                 }
             };
 

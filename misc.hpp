@@ -53,48 +53,42 @@ namespace apc
             using type = tuple<T, Ts...>;
         };
 
+        template< typename T, typename Tuple >
+        using append_tuple_t = typename AppendTuple<T, Tuple>::type;
 
-        template< typename... Ts >
-        struct WithoutNils;
 
-        template< typename T, typename... Ts >
-        struct WithoutNils<T, Ts...>
+        template< typename R, typename... Ts >
+        struct WithoutT;
+
+        template< typename R, typename T, typename... Ts >
+        struct WithoutT<R, T, Ts...>
         {
-            using type = typename AppendTuple<T, typename WithoutNils<Ts...>::type>::type;
+            using type = conditional_t< is_same_v<remove_reference_t<T>, remove_reference_t<R>>,
+                                        typename WithoutT<R, Ts...>::type,
+                                        append_tuple_t<T, typename WithoutT<R, Ts...>::type>
+                                        >;
         };
 
-        template< typename... Ts >
-        struct WithoutNils<res::NilOk, Ts...>
-        {
-            using type = typename WithoutNils<Ts...>::type;
-        };
-
-        template< typename... Ts >
-        struct WithoutNils<res::NilOk&, Ts...>
-        {
-            using type = typename WithoutNils<Ts...>::type;
-        };
-
-        template<>
-        struct WithoutNils<>
+        template< typename R >
+        struct WithoutT<R>
         {
             using type = tuple<>;
         };
 
-        template< typename... Ts >
-        using without_nils_t = typename WithoutNils<Ts...>::type;
+        template< typename R, typename... Ts >
+        using without_t_t = typename WithoutT<R, Ts...>::type;
 
 
-        template< typename T, typename... Ts >
-        constexpr without_nils_t<T&, Ts&...> without_nils(tuple<T&, Ts&...> t)
+        template< typename R, typename T, typename... Ts >
+        constexpr without_t_t<R, T&, Ts&...> without_t(tuple<T&, Ts&...> t)
         {
-            if constexpr (is_same_v<T, res::NilOk>)
+            if constexpr (is_same_v<remove_reference_t<T>, remove_reference_t<R>>)
             {
                 if constexpr (sizeof...(Ts) != 0)
                 {
                     return apply([](auto& head, auto&... tail)
                                  {
-                                     return without_nils(tie(tail...));
+                                     return without_t<R>(tie(tail...));
                                  }, t);
                 }
                 else
@@ -111,7 +105,7 @@ namespace apc
                                      return tuple_cat
                                          (
                                              tie(head),
-                                             without_nils(tie(tail...))
+                                             without_t<R>(tie(tail...))
                                              );
                                  }, t);
                 }
@@ -120,6 +114,64 @@ namespace apc
                     return tie(get<0>(t));
                 }
             }
+        }
+
+
+        template< typename T, typename U, typename... Us >
+        constexpr bool is_in_list_v = (is_same_v<T, U> ? true : is_in_list_v<T, Us...>);
+
+        template< typename T, typename U >
+        constexpr bool is_in_list_v<T, U> = is_same_v<T, U>;
+
+
+        template< typename T, typename... Ts >
+        struct RemoveDuplicates
+        {
+            using type = conditional_t< is_in_list_v<T, Ts...>,
+                                        typename RemoveDuplicates<Ts...>::type,
+                                        append_tuple_t<T, typename RemoveDuplicates<Ts...>::type>
+                                        >;
+        };
+
+        template< typename T >
+        struct RemoveDuplicates<T>
+        {
+            using type = tuple<T>;
+        };
+
+        template< typename T, typename... Ts >
+        using remove_duplicates_t = typename RemoveDuplicates<T, Ts...>::type;
+
+
+        template< typename I >
+        size_t calc_inner_offset(I b, I err_pos)
+        {
+            return distance(b, err_pos);
+        }
+
+
+        template< typename T >
+        constexpr bool is_optional(const T&)
+        {
+            return false;
+        }
+
+        template< typename T >
+        constexpr bool is_optional(const optional<T>&)
+        {
+            return true;
+        }
+
+        template< typename T >
+        constexpr bool is_variant(const T&)
+        {
+            return false;
+        }
+
+        template< typename... Ts >
+        constexpr bool is_variant(const variant<Ts...>&)
+        {
+            return true;
         }
     }
 }
