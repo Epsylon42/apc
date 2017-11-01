@@ -27,9 +27,9 @@ Parser result is represented with `Result<T, E, I>` where `T` is success type, `
 
 `EOI` currently has just a "stack trace".
 
-`Err` and `EOI` have a function `print_trace()` to print a human-readable error description.
+There is a function print_trace() which accepts either `E` or `EOI` and prints a human-readable description
 
-`E` should inherit `apc::res::Error` type and override `std::string description(size_t offset)` and `Error& previous()`. `description` should return a human-readable error description and call `description(offset+n)` on the previous error where `n` is where the inner parser started relative to the current one. `previous` has to return a reference to the previous error or to any `NilErr` if there isn't one.
+ `E` must have a field `prev` which can be a previous error, optional previous error, variant containing previous errors or `NilErr`. It also must have a function `tuple<string, size_t> description()` where string is human-readable description of the error, and size\_t is where the previous error happened relative to the current one.
 
 `apc::res` has helper functions for dealing with results:
 Check the contents:
