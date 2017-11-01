@@ -16,6 +16,15 @@ void print(const T& t)
     cout << t << ' ';
 }
 
+template< typename... Ts >
+void print(const variant<Ts...>& t)
+{
+    visit([](auto& t)
+          {
+              print(t);
+          }, t);
+}
+
 template< typename T >
 void print(const vector<T>& t)
 {
@@ -45,18 +54,9 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    for (string_view in : { "ababb", "aba", "acac", "a" }) {
+    for (string_view in : { "ababb", "cba", "bcac", "" }) {
         auto parser =
-            sequence(
-                hide(
-                    many(sequence(unit('a'), unit('b')))
-                    .at_least(2)
-                    .at_most(4)
-                    ),
-
-                unit('b')
-                );
-
+            alt(unit('a'), unit('b'));
 
         match(parser.parse(in.begin(), in.end()),
               [](auto res_ok)

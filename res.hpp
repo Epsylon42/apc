@@ -40,19 +40,19 @@ namespace apc
                 out << "\t" << "At " << offset+1 << ' ' << desc << endl;
 
                 if constexpr (misc::is_optional(err.prev))
-                             {
-                                 if (err.prev.has_value())
-                                 {
-                                     print_trace(*err.prev, out, offset + e_offset, false);
-                                 }
-                             }
+                {
+                    if (err.prev.has_value())
+                    {
+                        print_trace(*err.prev, out, offset + e_offset, false);
+                    }
+                }
                 else if constexpr (misc::is_variant(err.prev))
-                                  {
-                                      visit([&out, offset, e_offset](auto& e)
-                                            {
-                                                print_trace(e, out, offset + e_offset, false);
-                                            }, err.prev);
-                                  }
+                {
+                    visit([&out, offset, e_offset](auto& e)
+                        {
+                            print_trace(e, out, offset + e_offset, false);
+                        }, err.prev);
+                }
                 else
                 {
                     print_trace(err.prev, out, offset + e_offset, false);

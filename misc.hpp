@@ -139,8 +139,21 @@ namespace apc
             using type = tuple<T>;
         };
 
-        template< typename T, typename... Ts >
-        using remove_duplicates_t = typename RemoveDuplicates<T, Ts...>::type;
+        template< typename... Ts >
+        using remove_duplicates_t = typename RemoveDuplicates<Ts...>::type;
+
+
+        template< template< typename... > class T, typename U >
+        struct ChangeWrapper;
+
+        template< template< typename... > class T, template< typename... > class U, typename... Ts >
+        struct ChangeWrapper<T, U<Ts...>>
+        {
+            using type = T<Ts...>;
+        };
+
+        template< template< typename... > class T, typename U >
+        using change_wrapper_t = typename ChangeWrapper<T, U>::type;
 
 
         template< typename I >

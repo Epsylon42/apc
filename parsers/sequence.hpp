@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <sstream>
 #include <tuple>
 #include <type_traits>
@@ -17,11 +16,8 @@ namespace apc
             using namespace misc;
 
 
-            template< typename T >
-            struct SequenceErr;
-
             template< typename... Es >
-            struct SequenceErr<tuple<Es...>>
+            struct SequenceErr
             {
                 variant<Es...> prev;
 
@@ -51,9 +47,9 @@ namespace apc
                     auto head_ok = unwrap_ok(move(head_res));
 
                     if constexpr (sizeof...(Ps) == 0)
-                                 {
-                                     return ok(make_tuple(move(head_ok.res)), head_ok.pos);
-                                 }
+                    {
+                        return ok(make_tuple(move(head_ok.res)), head_ok.pos);
+                    }
                     else
                     {
                         auto tail_res = sequence_impl<I, E>(n+1, head_ok.pos, e, tail...);
@@ -111,22 +107,22 @@ namespace apc
             }
 
             template< typename... Ps >
-                struct Sequence
+            struct Sequence
             {
                 tuple<Ps...> parsers;
 
                 using Ok = without_t_t<NilOk, typename Ps::Ok...>;
 
-                using Err = SequenceErr<typename RemoveDuplicates<typename Ps::Err...>::type>;
+                using Err = change_wrapper_t<SequenceErr, remove_duplicates_t<typename Ps::Err...>>;
 
                 Sequence(Ps... parsers) : parsers(move(parsers)...) {}
 
                 template< typename I >
                 Result<Ok, Err, I> parse(I b, I e)
                 {
-                    auto res = apply([&b, &e](auto head, auto... tail)
+                    auto res = apply([&b, &e](auto&... parsers)
                                      {
-                                         return sequence_impl<I, Err>(0, b, e, head, tail...);
+                                         return sequence_impl<I, Err>(0, b, e, parsers...);
                                      }, parsers);
 
                     if (is_ok(res))
