@@ -47,13 +47,13 @@ namespace apc
                     switch (cause)
                     {
                     case ManyErrCause::ParserFailed:
-                        sstream << "parser number " << step
+                        sstream << "parser number " << step+1
                                 << " failed. Expected at least " << expected_at_least
                                 << ' ' << (expected_at_least == 1 ? "value" : "values");
                         break;
 
                     case ManyErrCause::ConditionFailed:
-                        sstream << "return value of parser number " << step
+                        sstream << "return value of parser number " << step+1
                                 << " did not satisfy the condition. Expected at least"
                                 << expected_at_least << ' '
                                 << (expected_at_least == 1 ? "value" : "values");
@@ -106,7 +106,7 @@ namespace apc
                 {
                     if (b >= e)
                     {
-                        return EOI("Many position 0");
+                        return EOI("Many position 1");
                     }
 
                     I iter = b;
@@ -171,7 +171,7 @@ namespace apc
                             {
                                 auto res_eoi = unwrap_eoi(move(res));
 
-                                res_eoi.trace.push_back("Many position "s + to_string(taken));
+                                res_eoi.trace.push_back("Many position "s + to_string(taken+1));
 
                                 return res_eoi;
                             }

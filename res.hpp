@@ -28,29 +28,35 @@ namespace apc
             {
                 return;
             }
-
-            auto [ desc, e_offset ] = err.description();
-
-            if (first)
+            else
             {
-                out << "Error trace" << endl;
-            }
+                auto [ desc, e_offset ] = err.description();
 
-            out << "\t" << "At " << offset << ' ' << desc << endl;
-
-            if constexpr (misc::is_optional(err.prev))
-            {
-                if (err.prev.has_value())
+                if (first)
                 {
-                    print_trace(*err.prev, out, offset + e_offset, false);
+                    out << "Error trace" << endl;
                 }
-            }
-            else if constexpr (misc::is_variant(err.prev))
-            {
-                visit([&out, offset, e_offset](auto& e)
-                      {
-                          print_trace(e, out, offset + e_offset, false);
-                      }, err.prev);
+
+                out << "\t" << "At " << offset+1 << ' ' << desc << endl;
+
+                if constexpr (misc::is_optional(err.prev))
+                             {
+                                 if (err.prev.has_value())
+                                 {
+                                     print_trace(*err.prev, out, offset + e_offset, false);
+                                 }
+                             }
+                else if constexpr (misc::is_variant(err.prev))
+                                  {
+                                      visit([&out, offset, e_offset](auto& e)
+                                            {
+                                                print_trace(e, out, offset + e_offset, false);
+                                            }, err.prev);
+                                  }
+                else
+                {
+                    print_trace(err.prev, out, offset + e_offset, false);
+                }
             }
         }
 

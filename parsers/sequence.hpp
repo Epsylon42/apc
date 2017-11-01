@@ -36,7 +36,7 @@ namespace apc
                 tuple<string, size_t> description()
                 {
                     stringstream sstream;
-                    sstream << "Sequence error because parser number " << n << " failed";
+                    sstream << "Sequence error because parser number " << n+1 << " failed";
 
                     return { sstream.str(), inner_offset } ;
                 }
@@ -93,7 +93,7 @@ namespace apc
                     I err_pos = head_err.pos;
 
                     return err(E(
-                                   distance(b, err_pos),
+                                   0,
                                    move(head_err.err),
                                    n
                                    ),
@@ -104,7 +104,7 @@ namespace apc
                 {
                     auto head_eoi = unwrap_eoi(move(head_res));
 
-                    head_eoi.trace.push_back("Sequence position "s + std::to_string(n));
+                    head_eoi.trace.push_back("Sequence position "s + std::to_string(n+1));
 
                     return head_eoi;
                 }

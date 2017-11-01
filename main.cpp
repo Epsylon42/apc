@@ -21,7 +21,7 @@ void print(const vector<T>& t)
 {
     for (const auto& e : t)
     {
-        cout << e << ' ';
+        print(e);
     }
 }
 
@@ -45,16 +45,16 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    for (string_view in : { "aaaa", "aab", "abc", "a" }) {
+    for (string_view in : { "ababb", "aba", "acac", "a" }) {
         auto parser =
             sequence(
-                many(
-                    unit('a')
-                    )
-                .at_least(2)
-                .at_most(4),
+                hide(
+                    many(sequence(unit('a'), unit('b')))
+                    .at_least(2)
+                    .at_most(4)
+                    ),
 
-                hide(unit('b'))
+                unit('b')
                 );
 
 
