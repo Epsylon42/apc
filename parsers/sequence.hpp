@@ -154,6 +154,7 @@ namespace apc
         template< typename... Ps >
         auto sequence(Ps... parsers)
         {
+            static_assert(sizeof...(Ps) > 0, "sequence parser requires at least one argument");
             return sequence_ns::Sequence<Ps...>(move(parsers)...);
         }
     }
