@@ -17,6 +17,12 @@ namespace apc
         using print_t = decltype(declval<ostream&>() << declval<T&>());
 
         template< typename T >
+        using iterate_t = enable_if< is_same_v<decltype(begin(declval<T&>())), decltype(end(declval<T&>()))>, decltype(begin(declval<T&>())) >;
+
+        template< typename T >
+        constexpr bool is_iterable_v = is_detected_v<iterate_t, T>;
+
+        template< typename T >
         constexpr bool is_printable_v = is_detected_v<print_t, T>;
 
         template< typename T, typename... Ts >
@@ -117,11 +123,8 @@ namespace apc
         }
 
 
-        template< typename T, typename U, typename... Us >
-        constexpr bool is_in_list_v = (is_same_v<T, U> ? true : is_in_list_v<T, Us...>);
-
-        template< typename T, typename U >
-        constexpr bool is_in_list_v<T, U> = is_same_v<T, U>;
+        template< typename T, typename... Ts >
+        constexpr bool is_in_list_v = disjunction_v<is_same<T, Ts>...>;
 
 
         template< typename T, typename... Ts >

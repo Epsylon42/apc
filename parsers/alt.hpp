@@ -90,7 +90,7 @@ namespace apc
 
                 using Ok = conditional_t<
                     tuple_size_v<RetTypes> == 1,
-                    remove_reference_t<decltype(get<0>(declval<RetTypes>()))>,
+                    tuple_element_t<0, RetTypes>,
                     change_wrapper_t<variant, RetTypes>
                 >;
 
