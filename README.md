@@ -18,6 +18,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 * alt(Ps...): accepts one or more parsers and executes them in sequence. Returns the result of the first successful parser. If they have the same return type, returns it, otherwise, returns a `variant`
 * hide(P): accepts one parser and executes it but replaces its return type with `NilOk`
 * many(P): accepts one parser and executes it until it fails. Returns vector of values
+* any: accepts a type parameter and returns anything
 
 ### error handling
 

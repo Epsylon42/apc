@@ -59,25 +59,12 @@ int main()
     string in = "if{b}";
 
     auto parser =
-        alt(
-            sequence(
-                hide(lit("if")),
-                hide(lit('{')),
-                alt(unit('a'), unit('b')),
-                hide(unit('}'))
-                ),
-            sequence(
-                hide(lit("while")),
-                hide(unit('{')),
-                alt(unit('a'), unit('b')),
-                hide(unit('}'))
-                )
-            );
+        many_str<char>();
 
     match(parser.parse(in.begin(), in.end()),
           [](auto res_ok)
           {
-              cout << res_ok.res << endl;
+              print(res_ok.res);
           },
           [](auto res_err)
           {

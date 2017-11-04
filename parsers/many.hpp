@@ -4,6 +4,9 @@
 #include <functional>
 #include <optional>
 #include <sstream>
+#include <string>
+
+#include "any.hpp"
 
 namespace apc
 {
@@ -64,7 +67,7 @@ namespace apc
                 }
             };
 
-            template< typename P >
+            template< typename P, template< typename > class C = vector >
             struct Many
             {
                 P parser;
@@ -74,7 +77,7 @@ namespace apc
 
                 function<bool(typename P::Ok&)> _take_while;
 
-                using Ok = vector<typename P::Ok>;
+                using Ok = C<typename P::Ok>;
                 using Err = ManyErr<typename P::Err>;
 
                 Many(P parser)
@@ -101,6 +104,16 @@ namespace apc
                     return *this;
                 }
 
+                Many<P>& take_until(function<bool(typename P::Ok&)> pred)
+                {
+                    _take_while = [pred](typename P::Ok& t)
+                        {
+                            return !pred(t);
+                        };
+
+                    return *this;
+                }
+
                 template< typename I >
                 Result<Ok, Err, I> parse(I b, I e)
                 {
@@ -111,7 +124,7 @@ namespace apc
 
                     I iter = b;
                     unsigned int taken = 0;
-                    vector<typename P::Ok> ret;
+                    C<typename P::Ok> ret;
 
                     do
                     {
@@ -144,7 +157,7 @@ namespace apc
 
                             iter = res_ok.pos;
 
-                            ret.emplace_back(move(res_ok.res));
+                            ret.push_back(move(res_ok.res));
                             taken++;
                         }
                         else if (is_err(res))
@@ -185,10 +198,28 @@ namespace apc
             };
         }
 
-        template< typename P >
+        template< typename P, template< typename > class C >
         auto many(P parser)
         {
-            return many_ns::Many<P>(move(parser));
+            return many_ns::Many<P, C>(move(parser));
+        }
+
+        template< typename T, template< typename > class C >
+        auto many()
+        {
+            return many<any_ns::Any<T>, C>(any<T>());
+        }
+
+        template< typename P >
+        auto many_str(P parser)
+        {
+            return many_ns::Many<P, basic_string>(move(parser));
+        }
+
+        template< typename T >
+        auto many_str()
+        {
+            return many<any_ns::Any<T>, basic_string>(any<T>());
         }
     }
 }
