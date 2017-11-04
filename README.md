@@ -13,6 +13,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 ###### currently implemented parsers
 
 * unit(T): returns T if the first element of input is equal to T. Otherwise returns error
+*lit(T): accepts something iterable and returns it if the input matches. Otherwise returns error
 * sequence(Ps...): accepts one or more parsers and executes them in sequence. Returns tuple of their results without `NilOk`s if they all succeed or error if at least one fails
 * alt(Ps...): accepts one or more parsers and executes them in sequence. Returns the result of the first successful parser. If they have the same return type, returns it, otherwise, returns a `variant`
 * hide(P): accepts one parser and executes it but replaces its return type with `NilOk`

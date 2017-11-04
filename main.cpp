@@ -5,6 +5,8 @@
 #include <utility>
 #include <functional>
 #include <type_traits>
+#include <random>
+#include <chrono>
 
 #include "apc.hpp"
 
@@ -54,25 +56,35 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    for (string_view in : { "ababb", "cba", "bcac", "" }) {
-        auto parser =
-            alt(unit('a'), unit('b'));
+    string in = "if{b}";
 
-        match(parser.parse(in.begin(), in.end()),
-              [](auto res_ok)
-              {
-                  print(res_ok.res);
-                  cout << endl << endl;
-              },
-              [](auto res_err)
-              {
-                  print_trace(res_err.err);
-                  cout << endl;
-              },
-              [](auto res_eoi)
-              {
-                  print_trace(res_eoi);
-                  cout << endl;
-              });
-    }
+    auto parser =
+        alt(
+            sequence(
+                hide(lit("if")),
+                hide(lit('{')),
+                alt(unit('a'), unit('b')),
+                hide(unit('}'))
+                ),
+            sequence(
+                hide(lit("while")),
+                hide(unit('{')),
+                alt(unit('a'), unit('b')),
+                hide(unit('}'))
+                )
+            );
+
+    match(parser.parse(in.begin(), in.end()),
+          [](auto res_ok)
+          {
+              cout << res_ok.res << endl;
+          },
+          [](auto res_err)
+          {
+              print_trace(res_err.err);
+          },
+          [](auto res_eoi)
+          {
+              print_trace(res_eoi);
+          });
 }

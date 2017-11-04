@@ -24,8 +24,8 @@ namespace apc
 
                 UnitErr(T expected, T got)
                     : prev()
-                    , expected(expected)
-                    , got(got) {}
+                    , expected(move(expected))
+                    , got(move(got)) {}
 
                 tuple<string, size_t> description()
                 {

@@ -111,7 +111,12 @@ namespace apc
             {
                 tuple<Ps...> parsers;
 
-                using Ok = without_t_t<NilOk, typename Ps::Ok...>;
+                using RetTypes = without_t_t<NilOk, typename Ps::Ok...>;
+
+                using Ok = conditional_t< tuple_size_v<RetTypes> == 1,
+                                          tuple_element_t<0, RetTypes>,
+                                          RetTypes
+                                          >;
 
                 using Err = change_wrapper_t<SequenceErr, remove_duplicates_t<typename Ps::Err...>>;
 
@@ -131,7 +136,14 @@ namespace apc
 
                         I res_end = res_ok.pos;
 
-                        return ok(move_ref_tuple(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
+                        if constexpr (is_same_v<Ok, RetTypes>)
+                        {
+                            return ok(move_ref_tuple(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
+                        }
+                        else
+                        {
+                            return ok(get<0>(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
+                        }
                     }
                     else if (is_err(res))
                     {
