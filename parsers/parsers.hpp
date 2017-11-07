@@ -7,3 +7,4 @@
 #include "alt.hpp"
 #include "lit.hpp"
 #include "any.hpp"
+#include "map.hpp"

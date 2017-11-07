@@ -190,52 +190,5 @@ namespace apc
         {
             return get<EOI>(res);
         }
-
-
-        template< typename T, typename E, typename I,
-                  typename MOK, typename MERR, typename MEOI >
-        void match (Result<T, E, I> res,
-                    MOK match_ok,
-                    MERR match_err,
-                    MEOI match_eoi
-            )
-        {
-
-            if (is_ok(res))
-            {
-                match_ok(unwrap_ok(move(res)));
-            }
-            else if (is_err(res))
-            {
-                match_err(unwrap_err(move(res)));
-            }
-            else
-            {
-                match_eoi(unwrap_eoi(move(res)));
-            }
-        }
-
-        template< typename T, typename T1, typename E, typename E1, typename I,
-                  typename MOK, typename MERR, typename MEOI >
-        Result<T1, E1, I> match (Result<T, E, I> res,
-                                 MOK match_ok,
-                                 MERR match_err,
-                                 MEOI match_eoi
-            )
-        {
-
-            if (is_ok(res))
-            {
-                return match_ok(unwrap_ok(move(res)));
-            }
-            else if (is_err(res))
-            {
-                return match_err(unwrap_err(move(res)));
-            }
-            else
-            {
-                return match_eoi(unwrap_eoi(move(res)));
-            }
-        }
     }
 }

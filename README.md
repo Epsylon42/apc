@@ -19,6 +19,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 * hide(P): accepts one parser and executes it but replaces its return type with `NilOk`
 * many(P): accepts one parser and executes it until it fails. Returns vector of values
 * any: accepts a type parameter and returns anything
+* map(P, F) accepts a parser and a function. Returns the output of function applied to the parser's `Ok`.
 
 ### error handling
 
@@ -44,7 +45,6 @@ Get the contents:
 * unwrap_ok(res)
 * unwrap_err(res)
 * unwrap_eoi(res)
-* match(res, fn\_ok, fn\_err, fn\_eoi)
 
 Construct ok/err:
 * ok(T, I)

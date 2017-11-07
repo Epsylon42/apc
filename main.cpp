@@ -56,22 +56,34 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    string in = "if{b}";
+    string in = "ab{b}";
 
     auto parser =
-        many_str<char>();
+        map(
+            many_str<char>(),
 
-    match(parser.parse(in.begin(), in.end()),
-          [](auto res_ok)
-          {
-              print(res_ok.res);
-          },
-          [](auto res_err)
-          {
-              print_trace(res_err.err);
-          },
-          [](auto res_eoi)
-          {
-              print_trace(res_eoi);
-          });
+            [](string s)
+            {
+                for (char& c : s)
+                {
+                    c++;
+                }
+
+                return s;
+            }
+            );
+
+    auto res = parser.parse(in.begin(), in.end());
+    if (is_ok(res))
+    {
+        print(unwrap_ok(move(res)).res);
+    }
+    else if (is_err(res))
+    {
+        print_trace(unwrap_err(move(res)).err);
+    }
+    else
+    {
+        print_trace(unwrap_eoi(move(res)));
+    }
 }
