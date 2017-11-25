@@ -41,69 +41,45 @@ namespace apc
             template< typename I, typename E, typename P, typename... Ps >
                 auto sequence_impl(size_t n, I b, I e, P& head, Ps&... tail) -> Result<tuple<typename P::Ok, typename Ps::Ok...>, E, I>
             {
-                auto head_res = head.parse(b, e);
-                if (is_ok(head_res))
-                {
-                    auto head_ok = unwrap_ok(move(head_res));
+                using RetType = Result<tuple<typename P::Ok, typename Ps::Ok...>, E, I>;
 
-                    if constexpr (sizeof...(Ps) == 0)
+                return head.parse(b, e)
+                    .map_err([n](auto& head_err)
                     {
-                        return ok(make_tuple(move(head_ok.res)), head_ok.pos);
-                    }
-                    else
-                    {
-                        auto tail_res = sequence_impl<I, E>(n+1, head_ok.pos, e, tail...);
-                        if (is_ok(tail_res))
-                        {
-                            auto tail_ok = unwrap_ok(move(tail_res));
-
-                            I tail_end = tail_ok.pos;
-
-                            auto ret = tuple_cat(
-                                make_tuple(move(head_ok.res)),
-                                move(tail_ok.res)
-                                );
-
-                            return ok(move(ret), tail_end);
-                        }
-                        else if (is_err(tail_res))
-                        {
-                            auto tail_err = unwrap_err(move(tail_res));
-
-                            I err_pos = tail_err.pos;
-
-                            tail_err.err.inner_offset += distance(b, err_pos);
-
-                            return err(move(tail_err.err), err_pos);
-                        }
-                        else // eoi
-                        {
-                            return unwrap_eoi(move(tail_res));
-                        }
-                    }
-                }
-                else if (is_err(head_res))
-                {
-                    auto head_err = unwrap_err(move(head_res));
-
-                    I err_pos = head_err.pos;
-
-                    return err(E(
-                                   0,
-                                   move(head_err.err),
-                                   n
-                                   ),
-                               err_pos
+                        return err(
+                            E(0, move(head_err.err), n),
+                            head_err.pos
                         );
-                }
-                else // eoi
-                {
-                    auto head_eoi = unwrap_eoi(move(head_res));
-
-                    head_eoi.trace.push_back("Sequence position "s + std::to_string(n+1));
-
-                    return head_eoi;
-                }
+                    })
+                    .fmap_ok([&](auto& head_ok) -> RetType
+                    {
+                        if constexpr (sizeof...(Ps) == 0)
+                        {
+                            return ok(make_tuple(move(head_ok.res)), head_ok.pos);
+                        }
+                        else
+                        {
+                            return sequence_impl<I, E>(n+1, head_ok.pos, e, tail...)
+                                .map_ok([&head_ok](auto& tail_ok)
+                                {
+                                    return ok(
+                                        tuple_cat(
+                                            make_tuple(move(head_ok.res)),
+                                            move(tail_ok.res)
+                                        ),
+                                        tail_ok.pos
+                                    );
+                                })
+                                .visit_err([&b](auto& tail_err)
+                                {
+                                    tail_err.err.inner_offset += distance(b, tail_err.pos);
+                                });
+                        }
+                    })
+                    .visit_eoi([n](auto& head_eoi)
+                    {
+                        head_eoi.trace.push_back("Sequence position "s + std::to_string(n+1));
+                    });
             }
 
             template< typename... Ps >
@@ -130,31 +106,28 @@ namespace apc
                                          return sequence_impl<I, Err>(0, b, e, parsers...);
                                      }, parsers);
 
-                    if (is_ok(res))
-                    {
-                        auto res_ok = unwrap_ok(move(res));
-
-                        I res_end = res_ok.pos;
-
-                        if constexpr (is_same_v<Ok, RetTypes>)
+                    return res
+                        .map_ok([](auto& res_ok)
                         {
-                            return ok(move_ref_tuple(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
-                        }
-                        else
-                        {
-                            return ok(get<0>(without_t<NilOk>(ref_tuple(res_ok.res))), res_end);
-                        }
-                    }
-                    else if (is_err(res))
-                    {
-                        auto res_err = unwrap_err(move(res));
-
-                        return err(move(res_err.err), move(res_err.pos));
-                    }
-                    else
-                    {
-                        return unwrap_eoi(move(res));
-                    }
+                            if constexpr (is_same_v<Ok, RetTypes>)
+                            {
+                                return ok(
+                                    move_ref_tuple(
+                                        without_t<NilOk>(
+                                            ref_tuple(res_ok.res)
+                                        )
+                                    ),
+                                    res_ok.pos
+                                );
+                            }
+                            else
+                            {
+                                return ok(
+                                    move(get<0>(without_t<NilOk>(ref_tuple(res_ok.res)))),
+                                    res_ok.pos
+                                );
+                            }
+                        });
                 }
             };
         }

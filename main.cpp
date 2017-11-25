@@ -60,30 +60,33 @@ int main()
 
     auto parser =
         map(
-            many_str<char>(),
+            sequence(
+                hide(unit('a')),
+                many_str<char>()
+            ),
 
             [](string s)
             {
                 for (char& c : s)
                 {
-                    c++;
+                    c += 1;
                 }
 
                 return s;
             }
-            );
+        );
 
-    auto res = parser.parse(in.begin(), in.end());
-    if (is_ok(res))
-    {
-        print(unwrap_ok(move(res)).res);
-    }
-    else if (is_err(res))
-    {
-        print_trace(unwrap_err(move(res)).err);
-    }
-    else
-    {
-        print_trace(unwrap_eoi(move(res)));
-    }
+    parser.parse(in.begin(), in.end())
+        .visit_ok([](auto& res_ok)
+        {
+            print(res_ok.res);
+        })
+        .visit_err([](auto& res_err)
+        {
+            print_trace(res_err.err);
+        })
+        .visit_eoi([](auto& eoi)
+        {
+            print_trace(eoi);
+        });
 }

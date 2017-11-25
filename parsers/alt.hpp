@@ -47,17 +47,17 @@ namespace apc
                 }
             };
 
-            template< typename I, typename T, typename P, typename... Ps >
-            auto alt_impl(size_t n_err, size_t n_eoi, I b, I e, P& head, Ps&... tail) -> variant<res::Ok<T, I>, tuple<size_t, size_t>>
+            template< typename I, typename Ok_T, typename P, typename... Ps >
+            auto alt_impl(size_t n_err, size_t n_eoi, I b, I e, P& head, Ps&... tail) -> variant<res::Ok<Ok_T, I>, tuple<size_t, size_t>>
             {
                 auto head_res = head.parse(b, e);
-                if (is_ok(head_res))
+                if (head_res.is_ok())
                 {
-                    auto res_ok = unwrap_ok(move(head_res));
+                    auto res_ok = move(head_res.unwrap_ok());
 
-                    return ok(T(res_ok.res), res_ok.pos);
+                    return ok(Ok_T(res_ok.res), res_ok.pos);
                 }
-                else if (is_err(head_res))
+                else if (head_res.is_err())
                 {
                     if constexpr (sizeof...(Ps) == 0)
                     {
@@ -65,7 +65,7 @@ namespace apc
                     }
                     else
                     {
-                        return alt_impl<I, T>(n_err+1, n_eoi, b, e, tail...);
+                        return alt_impl<I, Ok_T>(n_err+1, n_eoi, b, e, tail...);
                     }
                 }
                 else
@@ -76,7 +76,7 @@ namespace apc
                     }
                     else
                     {
-                        return alt_impl<I, T>(n_err, n_eoi+1, b, e, tail...);
+                        return alt_impl<I, Ok_T>(n_err, n_eoi+1, b, e, tail...);
                     }
                 }
             }

@@ -24,23 +24,11 @@ namespace apc
                 template< typename I >
                 Result<Ok, Err, I> parse(I b, I e)
                 {
-                    auto parser_res = parser.parse(b, e);
-                    if (is_ok(parser_res))
-                    {
-                        auto res_ok = unwrap_ok(move(parser_res));
-
-                        return ok(func(move(res_ok.res)), res_ok.pos);
-                    }
-                    else if (is_err(parser_res))
-                    {
-                        auto res_err = unwrap_err(move(parser_res));
-
-                        return err(move(res_err.err), res_err.pos);
-                    }
-                    else
-                    {
-                        return unwrap_eoi(move(parser_res));
-                    }
+                    return parser.parse(b, e)
+                        .map_ok([this](auto& res_ok)
+                        {
+                            return ok(func(move(res_ok.res)), res_ok.pos);
+                        });
                 }
             };
         }

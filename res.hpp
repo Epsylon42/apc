@@ -21,6 +21,7 @@ namespace apc
 
         struct NilErr {};
 
+        //TODO: make it work with consts
         template< typename E >
         void print_trace(E& err, ostream& out = cerr, size_t offset = 0, bool first = true)
         {
@@ -111,84 +112,184 @@ namespace apc
             return Err<E, I>(move(e), move(i));
         }
 
-
         template< typename T, typename E, typename I >
-        using Result = variant<Ok<T, I>, Err<E, I>, EOI>;
-
-
-        template< typename T, typename E, typename I >
-        bool is_ok(const Result<T, E, I>& res)
+        struct Result
         {
-            return holds_alternative<Ok<T, I>>(res);
-        }
+            variant<Ok<T, I>, Err<E, I>, EOI> inner;
 
-        template< typename T, typename E, typename I >
-        bool is_err(const Result<T, E, I>& res)
-        {
-            return holds_alternative<Err<E, I>>(res);
-        }
+            Result(Result<T, E, I>& res) = default;
+            Result(Result<T, E, I>&& res) = default;
+            Result(const Result<T, E, I>& res) = default;
 
-        template< typename T, typename E, typename I >
-        bool is_eoi(const Result<T, E, I>& res)
-        {
-            return holds_alternative<EOI>(res);
-        }
+            template< typename... Ts >
+            Result(Ts&&... ts) : inner(forward<Ts>(ts)...) {}
 
+            bool is_ok() const
+            {
+                return holds_alternative<Ok<T, I>>(inner);
+            }
 
-        template< typename T, typename E, typename I >
-        Ok<T, I>& unwrap_ok(Result<T, E, I>& res)
-        {
-            return get<Ok<T, I>>(res);
-        }
+            bool is_err() const
+            {
+                return holds_alternative<Err<E, I>>(inner);
+            }
 
-        template< typename T, typename E, typename I >
-        Ok<T, I> unwrap_ok(Result<T, E, I>&& res)
-        {
-            return get<Ok<T, I>>(move(res));
-        }
+            bool is_eoi() const
+            {
+                return holds_alternative<EOI>(inner);
+            }
 
-        template< typename T, typename E, typename I >
-        const Ok<T, I>& unwrap_ok(const Result<T, E, I>& res)
-        {
-            return get<Ok<T, I>>(res);
-        }
+            Ok<T, I>& unwrap_ok()
+            {
+                return get<Ok<T, I>>(inner);
+            }
 
+            Err<E, I>& unwrap_err()
+            {
+                return get<Err<E, I>>(inner);
+            }
 
-        template< typename T, typename E, typename I >
-        Err<E, I>& unwrap_err(Result<T, E, I>& res)
-        {
-            return get<Err<E, I>>(res);
-        }
+            EOI& unwrap_eoi()
+            {
+                return get<EOI>(inner);
+            }
 
-        template< typename T, typename E, typename I >
-        Err<E, I> unwrap_err(Result<T, E, I>&& res)
-        {
-            return get<Err<E, I>>(move(res));
-        }
+            //TODO: use more moves
+            template< typename F >
+            Result<decltype(invoke_result_t<F, Ok<T, I>&>::res), E, I> map_ok(F pred)
+            {
+                if (is_ok())
+                {
+                    return pred(unwrap_ok());
+                }
+                else if (is_err())
+                {
+                    return unwrap_err();
+                }
+                else
+                {
+                    return unwrap_eoi();
+                }
+            }
 
-        template< typename T, typename E, typename I >
-        const Err<E, I>& unwrap_err(const Result<T, E, I>& res)
-        {
-            return get<Err<E, I>>(res);
-        }
+            template< typename F >
+            Result<T, decltype(invoke_result_t<F, Err<E, I>&>::err), I> map_err(F pred)
+            {
+                if (is_err())
+                {
+                    return pred(unwrap_err());
+                }
+                else if (is_ok())
+                {
+                    return unwrap_ok();
+                }
+                else
+                {
+                    return unwrap_eoi();
+                }
+            }
 
+            template< typename F >
+            Result<T, E, I> map_eoi(F pred)
+            {
+                if (is_eoi())
+                {
+                    return pred(unwrap_eoi());
+                }
+                else if (is_ok())
+                {
+                    return unwrap_ok();
+                }
+                else
+                {
+                    return unwrap_err();
+                }
+            }
 
-        template< typename T, typename E, typename I >
-        EOI& unwrap_eoi(Result<T, E, I>& res)
-        {
-            return get<EOI>(res);
-        }
+            template< typename F >
+            Result<T, E, I>& visit_ok(F pred)
+            {
+                if (is_ok())
+                {
+                    pred(unwrap_ok());
+                }
 
-        template< typename T, typename E, typename I >
-        EOI unwrap_eoi(Result<T, E, I>&& res)
-        {
-            return get<EOI>(move(res));
-        }
+                return *this;
+            }
 
-        template< typename T, typename E, typename I >
-        const EOI& unwrap_eoi(const Result<T, E, I>& res)
-        {
-            return get<EOI>(res);
-        }
+            template< typename F >
+            Result<T, E, I>& visit_err(F pred)
+            {
+                if (is_err())
+                {
+                    pred(unwrap_err());
+                }
+
+                return *this;
+            }
+
+            template< typename F >
+            Result<T, E, I>& visit_eoi(F pred)
+            {
+                if (is_eoi())
+                {
+                    pred(unwrap_eoi());
+                }
+
+                return *this;
+            }
+
+            template< typename F >
+            invoke_result_t<F, Ok<T, I>&> fmap_ok(F pred)
+            {
+                if (is_ok())
+                {
+                    return pred(unwrap_ok());
+                }
+                else if (is_err())
+                {
+                    return unwrap_err();
+                }
+                else
+                {
+                    return unwrap_eoi();
+                }
+            }
+
+            template< typename F >
+            invoke_result_t<F, Err<E, I>&> fmap_err(F pred)
+            {
+                if (is_err())
+                {
+                    return pred(unwrap_err());
+                }
+                else if (is_ok())
+                {
+                    return unwrap_ok();
+                }
+                else
+                {
+                    return unwrap_eoi();
+                }
+            }
+
+            template< typename F >
+            invoke_result_t<F, EOI&> fmap_eoi(F pred)
+            {
+                if (is_eoi())
+                {
+                    return pred(unwrap_eoi());
+                }
+                else if (is_ok())
+                {
+                    return unwrap_ok();
+                }
+                else
+                {
+                    return unwrap_err();
+                }
+            }
+        };
+
     }
 }

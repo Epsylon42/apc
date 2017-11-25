@@ -35,19 +35,17 @@ There is a function print_trace() which accepts either `E` or `EOI` and prints a
 
  `E` must have a field `prev` which can be a previous error, optional previous error, variant containing previous errors or `NilErr`. It also must have a function `tuple<string, size_t> description()` where string is human-readable description of the error, and size\_t is where the previous error happened relative to the current one.
 
-`apc::res` has helper functions for dealing with results:
-Check the contents:
-* is_ok(res)
-* is_err(res)
-* is_eoi(res)
+`Result` has helper methods for doing things
+* Check the contents: `res.is_*()`
+* Get the contents: `res.unwrap_*()`
+* Change the content:
+  - `res.map_*(F)` accepts a function that accepts and returns ok/err, applies it to ok/err inside the result and returns a result with changed value
+  - `res.fmap_*(F)` accepts a function that accepts ok/err and returns a result, applies it to ok/err/eoi inside the result and returns whatever it returned. If you pass a lambda you should explicitly set its return type i.e. `Result<something>`. If you don't you are going to have a bad time. Really.
+  - `res.visit_*(F)` accepts a function that accepts ok/err/eoi (possibly by referece) and returns void and applies it to ok/err/eoi
 
-Get the contents:
-* unwrap_ok(res)
-* unwrap_err(res)
-* unwrap_eoi(res)
 
-Construct ok/err:
+`apc::result` also has helper functions for constructing things
 * ok(T, I)
 * err(E, I)
 
-## I'm tired and this readme is complex enough. I'll finish it when the library is actually ready
+## I'm tired and this readme is complex enough. I'll finish it when the library is actually done

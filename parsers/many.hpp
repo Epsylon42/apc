@@ -162,9 +162,9 @@ namespace apc
                     {
                         auto res = parser.parse(iter, e);
 
-                        if (is_ok(res))
+                        if (res.is_ok())
                         {
-                            auto res_ok = unwrap_ok(move(res));
+                            auto res_ok = move(res.unwrap_ok());
 
                             bool take_while_res = _take_while(res_ok.res);
 
@@ -192,9 +192,9 @@ namespace apc
                             ret.push_back(move(res_ok.res));
                             taken++;
                         }
-                        else if (is_err(res))
+                        else if (res.is_err())
                         {
-                            auto res_err = unwrap_err(move(res));
+                            auto res_err = move(res.unwrap_err());
 
                             if (_at_least.has_value() && taken < *_at_least)
                             {
@@ -214,7 +214,7 @@ namespace apc
                         {
                             if (_at_least.has_value() && taken < *_at_least)
                             {
-                                auto res_eoi = unwrap_eoi(move(res));
+                                auto res_eoi = move(res.unwrap_eoi());
 
                                 res_eoi.trace.push_back("Many position "s + to_string(taken+1));
 
