@@ -72,10 +72,14 @@ namespace apc
             {
                 P parser;
 
+            private:
+
                 optional<unsigned int> _at_least;
                 optional<unsigned int> _at_most;
 
                 function<bool(typename P::Ok&)> _take_while;
+
+            public:
 
                 using Ok = C<typename P::Ok>;
                 using Err = ManyErr<typename P::Err>;
@@ -86,25 +90,25 @@ namespace apc
                     , _at_most(nullopt)
                     , _take_while([](auto& x) { return true; }) {}
 
-                Many<P>& at_least(unsigned int n)
+                Many<P, C> at_least(unsigned int n)
                 {
                     _at_least = n;
                     return *this;
                 }
 
-                Many<P>& at_most(unsigned int n)
+                Many<P, C> at_most(unsigned int n)
                 {
                     _at_most = n;
                     return *this;
                 }
 
-                Many<P>& take_while(function<bool(typename P::Ok&)> pred)
+                Many<P, C> take_while(function<bool(typename P::Ok&)> pred)
                 {
                     _take_while = pred;
                     return *this;
                 }
 
-                Many<P>& take_until(function<bool(typename P::Ok&)> pred)
+                Many<P, C> take_until(function<bool(typename P::Ok&)> pred)
                 {
                     _take_while = [pred](typename P::Ok& t)
                         {
@@ -112,6 +116,34 @@ namespace apc
                         };
 
                     return *this;
+                }
+
+                Many<P, C>&& at_least_mv(unsigned int n)
+                {
+                    _at_least = n;
+                    return move(*this);
+                }
+
+                Many<P, C>&& at_most_mv(unsigned int n)
+                {
+                    _at_most = n;
+                    return move(*this);
+                }
+
+                Many<P, C>&& take_while_mv(function<bool(typename P::Ok&)> pred)
+                {
+                    _take_while = pred;
+                    return move(*this);
+                }
+
+                Many<P, C>&& take_until_mv(function<bool(typename P::Ok&)> pred)
+                {
+                    _take_while = [pred](typename P::Ok& t)
+                        {
+                            return !pred(t);
+                        };
+
+                    return move(*this);
                 }
 
                 template< typename I >
@@ -220,6 +252,12 @@ namespace apc
         auto many_str()
         {
             return many<any_ns::Any<T>, basic_string>(any<T>());
+        }
+
+        auto many_space() {
+            auto ret = many_str<char>();
+            ret.take_while([](char& c) { return isspace(c); });
+            return ret;
         }
     }
 }
