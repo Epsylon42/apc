@@ -40,7 +40,7 @@ There is a function print_trace() which accepts either `E` or `EOI` and prints a
 * Get the contents: `res.unwrap_*()`
 * Change the content:
   - `res.map_*(F)` accepts a function that accepts and returns ok/err, applies it to ok/err inside the result and returns a result with changed value
-  - `res.fmap_*(F)` accepts a function that accepts ok/err and returns a result, applies it to ok/err/eoi inside the result and returns whatever it returned. If you pass a lambda you should explicitly set its return type i.e. `Result<something>`. If you don't you are going to have a bad time. Really.
+  - `res.fmap_*(F)` accepts a function that accepts ok/err and returns a result, applies it to ok/err/eoi inside the result and returns whatever it returned. If you pass a lambda you should explicitly set its return type i.e. `Result<something>`. If you don't, you are going to have a bad time. Really.
   - `res.visit_*(F)` accepts a function that accepts ok/err/eoi (possibly by referece) and returns void and applies it to ok/err/eoi
 
 

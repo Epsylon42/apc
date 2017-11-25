@@ -57,7 +57,7 @@ namespace apc
 
                     case ManyErrCause::ConditionFailed:
                         sstream << "return value of parser number " << step+1
-                                << " did not satisfy the condition. Expected at least"
+                                << " did not satisfy the condition. Expected at least "
                                 << expected_at_least << ' '
                                 << (expected_at_least == 1 ? "value" : "values");
                         break;
@@ -110,11 +110,7 @@ namespace apc
 
                 Many<P, C> take_until(function<bool(typename P::Ok&)> pred)
                 {
-                    _take_while = [pred](typename P::Ok& t)
-                        {
-                            return !pred(t);
-                        };
-
+                    _take_while = not_fn(pred);
                     return *this;
                 }
 
@@ -138,11 +134,7 @@ namespace apc
 
                 Many<P, C>&& take_until_mv(function<bool(typename P::Ok&)> pred)
                 {
-                    _take_while = [pred](typename P::Ok& t)
-                        {
-                            return !pred(t);
-                        };
-
+                    _take_while = not_fn(pred);
                     return move(*this);
                 }
 
