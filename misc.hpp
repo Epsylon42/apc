@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <tuple>
 #include <utility>
+#include <optional>
+#include <variant>
 #include <experimental/type_traits>
 
 namespace apc

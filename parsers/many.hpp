@@ -67,6 +67,7 @@ namespace apc
                 }
             };
 
+            //TODO: make modifiers return different types to improve performance
             template< typename P, template< typename > class C = vector >
             struct Many
             {
