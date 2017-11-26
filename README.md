@@ -20,6 +20,7 @@ Default parsers have names that start with and Uppercase letter and they with th
 * many(P): accepts one parser and executes it until it fails. Returns vector of values
 * any: accepts a type parameter and returns anything
 * map(P, F) accepts a parser and a function. Returns the output of function applied to the parser's `Ok`.
+* nop() accepts nothing and returns nothing. Always succeeds at returning nothing.
 
 ### error handling
 
