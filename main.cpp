@@ -56,25 +56,10 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    string in = "ab{b}";
+    string in = "a, b, c, d, e,";
 
     auto parser =
-        map(
-            sequence(
-                hide(unit('a')),
-                many_str<char>()
-            ),
-
-            [](string s)
-            {
-                for (char& c : s)
-                {
-                    c += 1;
-                }
-
-                return s;
-            }
-        );
+        many<char>().with_delim(lit(", ")).at_most(3);
 
     parser.parse(in.begin(), in.end())
         .visit_ok([](auto& res_ok)

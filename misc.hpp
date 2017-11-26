@@ -88,7 +88,7 @@ namespace apc
 
 
         template< typename R, typename T, typename... Ts >
-        constexpr without_t_t<R, T&, Ts&...> without_t(tuple<T&, Ts&...> t)
+        constexpr without_t_t<R, T, Ts...> without_t(tuple<T, Ts...> t)
         {
             if constexpr (is_same_v<remove_reference_t<T>, remove_reference_t<R>>)
             {
