@@ -3,8 +3,8 @@
 #include <string>
 #include <sstream>
 
-#include "misc.hpp"
-#include "res.hpp"
+#include "../misc.hpp"
+#include "../res.hpp"
 
 namespace apc
 {

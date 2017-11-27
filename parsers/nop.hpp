@@ -1,7 +1,5 @@
 #pragma once
 
-#include "res.hpp"
-
 namespace apc
 {
     namespace parsers
