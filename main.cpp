@@ -56,10 +56,15 @@ int main()
     using namespace apc::res;
     using namespace apc::parsers;
 
-    string in = "a, b, c, d, e,";
+    string in = "a, b, e";
 
     auto parser =
-        many<char>().with_delim(lit(", ")).at_most(3);
+        sequence(
+            unit('a'),
+            unit('b'),
+            unit('e')
+        )
+        .with_delim(lit(", "));
 
     parser.parse(in.begin(), in.end())
         .visit_ok([](auto& res_ok)
