@@ -1,31 +1,28 @@
 #pragma once
 
-namespace apc
+namespace apc::parsers
 {
-    namespace parsers
+    namespace nop_ns
     {
-        namespace nop_ns
-        {
-            using namespace res;
+        using namespace res;
 
-            struct Nop
+        struct Nop
+        {
+            using Ok = NilOk;
+            using Err = NilErr;
+
+            Nop() {}
+
+            template< typename I >
+            Result<Ok, Err, I> parse(I b, I e)
             {
-                using Ok = NilOk;
-                using Err = NilErr;
+                return ok(NilOk{}, b);
+            }
+        };
+    }
 
-                Nop() {}
-
-                template< typename I >
-                Result<Ok, Err, I> parse(I b, I e)
-                {
-                    return ok(NilOk{}, b);
-                }
-            };
-        }
-
-        nop_ns::Nop nop()
-        {
-            return nop_ns::Nop{};
-        }
+    nop_ns::Nop nop()
+    {
+        return nop_ns::Nop{};
     }
 }
